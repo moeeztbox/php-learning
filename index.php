@@ -10,7 +10,7 @@ $isDeveloper = true;
 // ===============================
 // ARRAY
 // ===============================
-$skills = ["PHP", "Laravel", "MySQL", "Git"];
+$skills = ["PHP", "Laravel", "MySQL", "Git", "GitHub"];
 
 // ===============================
 // FUNCTION
@@ -21,16 +21,14 @@ function greet($name)
 }
 
 // ===============================
-// CLASS
+// PARENT CLASS
 // ===============================
 class User
 {
-    // Properties
     public $name;
-    private $salary;
     protected $role;
+    private $salary;
 
-    // Constructor
     public function __construct($name, $salary, $role)
     {
         $this->name = $name;
@@ -38,13 +36,11 @@ class User
         $this->role = $role;
     }
 
-    // Public Method
     public function getUserInfo()
     {
         return "Name: {$this->name}, Role: {$this->role}";
     }
 
-    // Getter
     public function getSalary()
     {
         return $this->salary;
@@ -52,47 +48,64 @@ class User
 }
 
 // ===============================
+// CHILD CLASS (Inheritance)
+// ===============================
+class Developer extends User
+{
+    public $language;
+
+    public function __construct($name, $salary, $role, $language)
+    {
+        parent::__construct($name, $salary, $role);
+        $this->language = $language;
+    }
+
+    public function getDeveloperInfo()
+    {
+        return "{$this->name} is learning {$this->language}.";
+    }
+}
+
+// ===============================
 // OBJECT
 // ===============================
-$user = new User("Moeez", 100000, "Developer");
+$developer = new Developer(
+    "Moeez Jamil",
+    100000,
+    "PHP Developer",
+    "Laravel"
+);
 
 // ===============================
 // IF ELSE
 // ===============================
-if ($age >= 18) {
-    $status = "Adult";
-} else {
-    $status = "Minor";
-}
-
-// ===============================
-// LOOP
-// ===============================
-echo "<h2>Skills</h2>";
-
-foreach ($skills as $skill) {
-    echo $skill . "<br>";
-}
+$status = ($age >= 18) ? "Adult" : "Minor";
 
 // ===============================
 // OUTPUT
 // ===============================
-echo "<hr>";
+echo "<h2>Day 1 - PHP OOP Practice</h2>";
 
 echo greet($name);
 
-echo "<br><br>";
+echo "<hr>";
+
+echo "<strong>Skills:</strong><br>";
+
+foreach ($skills as $skill) {
+    echo "- $skill <br>";
+}
+
+echo "<hr>";
 
 echo "Age: $age <br>";
-
 echo "Status: $status <br>";
+echo "Developer: " . ($isDeveloper ? "Yes" : "No") . "<br><br>";
 
-echo "Developer: " . ($isDeveloper ? "Yes" : "No") . "<br>";
-
+echo $developer->getUserInfo();
 echo "<br>";
 
-echo $user->getUserInfo();
-
+echo $developer->getDeveloperInfo();
 echo "<br>";
 
-echo "Salary: " . $user->getSalary();
+echo "Salary: " . $developer->getSalary();
