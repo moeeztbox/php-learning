@@ -1,17 +1,11 @@
 <?php
 
-require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/BaseRepository.php";
 
-class UserRepository
+// Refactor: the PDO-connection constructor moved to BaseRepository; this class now
+// only holds user-specific SQL.
+class UserRepository extends BaseRepository
 {
-    private $connection;
-
-    public function __construct()
-    {
-        $database = new Database();
-        $this->connection = $database->connect();
-    }
-
     // CREATE
     public function createUser($name, $email, $password, $roleId)
     {

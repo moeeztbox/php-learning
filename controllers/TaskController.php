@@ -1,8 +1,11 @@
 <?php
 
+require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/TaskRepository.php";
 
-class TaskController
+// Refactor: handleRequest() dispatch and field validation now live in BaseController.
+// This class only implements the four task-specific actions.
+class TaskController extends BaseController
 {
     private $taskRepository;
 
@@ -11,31 +14,7 @@ class TaskController
         $this->taskRepository = new TaskRepository();
     }
 
-    public function handleRequest($method, $input)
-    {
-        switch ($method) {
-
-            case "GET":
-                return $this->getAll();
-
-            case "POST":
-                return $this->create($input);
-
-            case "PUT":
-                return $this->update($input);
-
-            case "DELETE":
-                return $this->delete($input);
-
-            default:
-                return [
-                    "status" => 405,
-                    "body" => ["message" => "Method Not Allowed"]
-                ];
-        }
-    }
-
-    private function getAll()
+    protected function getAll()
     {
         $tasks = $this->taskRepository->getAllTasks();
 
@@ -45,20 +24,14 @@ class TaskController
         ];
     }
 
-    private function create($input)
+    protected function create($input)
     {
-        if (
-            !isset($input["project_id"]) ||
-            !isset($input["assigned_to"]) ||
-            !isset($input["title"]) ||
-            !isset($input["description"]) ||
-            !isset($input["status"]) ||
-            !isset($input["deadline"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "project_id, assigned_to, title, description, status and deadline are required"]
-            ];
+        $error = $this->requireFields($input, [
+            "project_id", "assigned_to", "title", "description", "status", "deadline"
+        ]);
+
+        if ($error) {
+            return $error;
         }
 
         $created = $this->taskRepository->createTask(
@@ -83,21 +56,14 @@ class TaskController
         ];
     }
 
-    private function update($input)
+    protected function update($input)
     {
-        if (
-            !isset($input["id"]) ||
-            !isset($input["project_id"]) ||
-            !isset($input["assigned_to"]) ||
-            !isset($input["title"]) ||
-            !isset($input["description"]) ||
-            !isset($input["status"]) ||
-            !isset($input["deadline"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id, project_id, assigned_to, title, description, status and deadline are required"]
-            ];
+        $error = $this->requireFields($input, [
+            "id", "project_id", "assigned_to", "title", "description", "status", "deadline"
+        ]);
+
+        if ($error) {
+            return $error;
         }
 
         $updated = $this->taskRepository->updateTask(
@@ -123,13 +89,12 @@ class TaskController
         ];
     }
 
-    private function delete($input)
+    protected function delete($input)
     {
-        if (!isset($input["id"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id is required"]
-            ];
+        $error = $this->requireFields($input, ["id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $deleted = $this->taskRepository->deleteTask($input["id"]);

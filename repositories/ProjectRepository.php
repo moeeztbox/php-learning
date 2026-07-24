@@ -1,17 +1,11 @@
 <?php
 
-require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/BaseRepository.php";
 
-class ProjectRepository
+// Refactor: the PDO-connection constructor moved to BaseRepository; this class now
+// only holds project-specific SQL.
+class ProjectRepository extends BaseRepository
 {
-    private $connection;
-
-    public function __construct()
-    {
-        $database = new Database();
-        $this->connection = $database->connect();
-    }
-
     // CREATE
     public function createProject($title, $description, $createdBy)
     {

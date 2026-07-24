@@ -1,8 +1,11 @@
 <?php
 
+require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/RoleRepository.php";
 
-class RoleController
+// Refactor: handleRequest() dispatch and field validation now live in BaseController.
+// This class only implements the four role-specific actions.
+class RoleController extends BaseController
 {
     private $roleRepository;
 
@@ -11,31 +14,7 @@ class RoleController
         $this->roleRepository = new RoleRepository();
     }
 
-    public function handleRequest($method, $input)
-    {
-        switch ($method) {
-
-            case "GET":
-                return $this->getAll();
-
-            case "POST":
-                return $this->create($input);
-
-            case "PUT":
-                return $this->update($input);
-
-            case "DELETE":
-                return $this->delete($input);
-
-            default:
-                return [
-                    "status" => 405,
-                    "body" => ["message" => "Method Not Allowed"]
-                ];
-        }
-    }
-
-    private function getAll()
+    protected function getAll()
     {
         $roles = $this->roleRepository->getAllRoles();
 
@@ -45,13 +24,12 @@ class RoleController
         ];
     }
 
-    private function create($input)
+    protected function create($input)
     {
-        if (!isset($input["name"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "name is required"]
-            ];
+        $error = $this->requireFields($input, ["name"]);
+
+        if ($error) {
+            return $error;
         }
 
         $created = $this->roleRepository->createRole($input["name"]);
@@ -69,13 +47,12 @@ class RoleController
         ];
     }
 
-    private function update($input)
+    protected function update($input)
     {
-        if (!isset($input["id"]) || !isset($input["name"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id and name are required"]
-            ];
+        $error = $this->requireFields($input, ["id", "name"]);
+
+        if ($error) {
+            return $error;
         }
 
         $updated = $this->roleRepository->updateRole($input["id"], $input["name"]);
@@ -93,13 +70,12 @@ class RoleController
         ];
     }
 
-    private function delete($input)
+    protected function delete($input)
     {
-        if (!isset($input["id"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id is required"]
-            ];
+        $error = $this->requireFields($input, ["id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $deleted = $this->roleRepository->deleteRole($input["id"]);

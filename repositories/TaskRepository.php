@@ -1,17 +1,11 @@
 <?php
 
-require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/BaseRepository.php";
 
-class TaskRepository
+// Refactor: the PDO-connection constructor moved to BaseRepository; this class now
+// only holds task-specific SQL.
+class TaskRepository extends BaseRepository
 {
-    private $connection;
-
-    public function __construct()
-    {
-        $database = new Database();
-        $this->connection = $database->connect();
-    }
-
     // CREATE
     public function createTask(
         $projectId,

@@ -1,17 +1,11 @@
 <?php
 
-require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/BaseRepository.php";
 
-class RoleRepository
+// Refactor: the PDO-connection constructor moved to BaseRepository; this class now
+// only holds role-specific SQL.
+class RoleRepository extends BaseRepository
 {
-    private $connection;
-
-    public function __construct()
-    {
-        $database = new Database();
-        $this->connection = $database->connect();
-    }
-
     public function createRole($name)
     {
        $sql = "INSERT INTO roles (name)
