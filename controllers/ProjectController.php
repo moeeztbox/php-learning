@@ -1,8 +1,11 @@
 <?php
 
+require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/ProjectRepository.php";
 
-class ProjectController
+// Refactor: handleRequest() dispatch and field validation now live in BaseController.
+// This class only implements the four project-specific actions.
+class ProjectController extends BaseController
 {
     private $projectRepository;
 
@@ -11,31 +14,7 @@ class ProjectController
         $this->projectRepository = new ProjectRepository();
     }
 
-    public function handleRequest($method, $input)
-    {
-        switch ($method) {
-
-            case "GET":
-                return $this->getAll();
-
-            case "POST":
-                return $this->create($input);
-
-            case "PUT":
-                return $this->update($input);
-
-            case "DELETE":
-                return $this->delete($input);
-
-            default:
-                return [
-                    "status" => 405,
-                    "body" => ["message" => "Method Not Allowed"]
-                ];
-        }
-    }
-
-    private function getAll()
+    protected function getAll()
     {
         $projects = $this->projectRepository->getAllProjects();
 
@@ -45,17 +24,12 @@ class ProjectController
         ];
     }
 
-    private function create($input)
+    protected function create($input)
     {
-        if (
-            !isset($input["title"]) ||
-            !isset($input["description"]) ||
-            !isset($input["created_by"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "title, description and created_by are required"]
-            ];
+        $error = $this->requireFields($input, ["title", "description", "created_by"]);
+
+        if ($error) {
+            return $error;
         }
 
         $created = $this->projectRepository->createProject(
@@ -77,18 +51,12 @@ class ProjectController
         ];
     }
 
-    private function update($input)
+    protected function update($input)
     {
-        if (
-            !isset($input["id"]) ||
-            !isset($input["title"]) ||
-            !isset($input["description"]) ||
-            !isset($input["created_by"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id, title, description and created_by are required"]
-            ];
+        $error = $this->requireFields($input, ["id", "title", "description", "created_by"]);
+
+        if ($error) {
+            return $error;
         }
 
         $updated = $this->projectRepository->updateProject(
@@ -111,13 +79,12 @@ class ProjectController
         ];
     }
 
-    private function delete($input)
+    protected function delete($input)
     {
-        if (!isset($input["id"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id is required"]
-            ];
+        $error = $this->requireFields($input, ["id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $deleted = $this->projectRepository->deleteProject($input["id"]);

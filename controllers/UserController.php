@@ -1,8 +1,11 @@
 <?php
 
+require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/UserRepository.php";
 
-class UserController
+// Refactor: handleRequest() dispatch and field validation now live in BaseController.
+// This class only implements the four user-specific actions.
+class UserController extends BaseController
 {
     private $userRepository;
 
@@ -11,31 +14,7 @@ class UserController
         $this->userRepository = new UserRepository();
     }
 
-    public function handleRequest($method, $input)
-    {
-        switch ($method) {
-
-            case "GET":
-                return $this->getAll();
-
-            case "POST":
-                return $this->create($input);
-
-            case "PUT":
-                return $this->update($input);
-
-            case "DELETE":
-                return $this->delete($input);
-
-            default:
-                return [
-                    "status" => 405,
-                    "body" => ["message" => "Method Not Allowed"]
-                ];
-        }
-    }
-
-    private function getAll()
+    protected function getAll()
     {
         $users = $this->userRepository->getAllUsers();
 
@@ -45,18 +24,12 @@ class UserController
         ];
     }
 
-    private function create($input)
+    protected function create($input)
     {
-        if (
-            !isset($input["name"]) ||
-            !isset($input["email"]) ||
-            !isset($input["password"]) ||
-            !isset($input["role_id"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "name, email, password and role_id are required"]
-            ];
+        $error = $this->requireFields($input, ["name", "email", "password", "role_id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $created = $this->userRepository->createUser(
@@ -79,19 +52,12 @@ class UserController
         ];
     }
 
-    private function update($input)
+    protected function update($input)
     {
-        if (
-            !isset($input["id"]) ||
-            !isset($input["name"]) ||
-            !isset($input["email"]) ||
-            !isset($input["password"]) ||
-            !isset($input["role_id"])
-        ) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id, name, email, password and role_id are required"]
-            ];
+        $error = $this->requireFields($input, ["id", "name", "email", "password", "role_id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $updated = $this->userRepository->updateUser(
@@ -115,13 +81,12 @@ class UserController
         ];
     }
 
-    private function delete($input)
+    protected function delete($input)
     {
-        if (!isset($input["id"])) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "id is required"]
-            ];
+        $error = $this->requireFields($input, ["id"]);
+
+        if ($error) {
+            return $error;
         }
 
         $deleted = $this->userRepository->deleteUser($input["id"]);

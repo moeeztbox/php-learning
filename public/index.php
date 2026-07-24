@@ -31,35 +31,27 @@ if (!is_array($input)) {
     $input = [];
 }
 
+// Refactor: route map replaces the old switch statement. Each URI maps to the
+// controller class responsible for it, so adding a new resource is a one-line
+// addition here instead of a new switch case in this file.
+$routes = [
+    "/projects" => "ProjectController",
+    "/tasks" => "TaskController",
+    "/users" => "UserController",
+    "/roles" => "RoleController",
+];
+
 try {
 
-    switch ($uri) {
-
-        case "/projects":
-            $controller = new ProjectController();
-            $result = $controller->handleRequest($method, $input);
-            break;
-
-        case "/tasks":
-            $controller = new TaskController();
-            $result = $controller->handleRequest($method, $input);
-            break;
-
-        case "/users":
-            $controller = new UserController();
-            $result = $controller->handleRequest($method, $input);
-            break;
-
-        case "/roles":
-            $controller = new RoleController();
-            $result = $controller->handleRequest($method, $input);
-            break;
-
-        default:
-            $result = [
-                "status" => 404,
-                "body" => ["message" => "Route Not Found"]
-            ];
+    if (isset($routes[$uri])) {
+        $controllerClass = $routes[$uri];
+        $controller = new $controllerClass();
+        $result = $controller->handleRequest($method, $input);
+    } else {
+        $result = [
+            "status" => 404,
+            "body" => ["message" => "Route Not Found"]
+        ];
     }
 
 } catch (Exception $e) {

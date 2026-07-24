@@ -23,7 +23,11 @@ class Database
             return $this->connection;
 
         } catch (PDOException $e) {
-            die("Connection Failed: " . $e->getMessage());
+            // Refactor: throw instead of die(). die() printed a plain-text string and
+            // stopped execution immediately, bypassing index.php's try/catch and breaking
+            // the "JSON responses only" contract. Throwing lets the existing try/catch in
+            // index.php turn this into a proper JSON 500 response instead.
+            throw new Exception("Database connection failed: " . $e->getMessage());
         }
     }
 }
