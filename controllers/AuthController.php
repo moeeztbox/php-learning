@@ -22,12 +22,11 @@ class AuthController
         if (
             !isset($input["name"]) ||
             !isset($input["email"]) ||
-            !isset($input["password"]) ||
-            !isset($input["role_id"])
+            !isset($input["password"])
         ) {
             return [
                 "status" => 400,
-                "body" => ["message" => "name, email, password and role_id are required"]
+                "body" => ["message" => "name, email and password are required"]
             ];
         }
 
@@ -42,11 +41,13 @@ class AuthController
 
         $hashedPassword = password_hash($input["password"], PASSWORD_DEFAULT);
 
+        // role_id is not part of the public signup contract; pass through if given,
+        // otherwise leave it null (no default-role assumption is made here).
         $created = $this->userRepository->createUser(
             $input["name"],
             $input["email"],
             $hashedPassword,
-            $input["role_id"]
+            $input["role_id"] ?? null
         );
 
         if ($created) {
