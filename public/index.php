@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('Asia/Karachi');
+
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
