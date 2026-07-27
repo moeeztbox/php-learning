@@ -47,7 +47,7 @@ try {
     // Auth routes are handled separately from $routes: both are POST-only actions
     // on their own paths, not a GET/POST/PUT/DELETE resource, so they don't go
     // through handleRequest().
-    if ($uri === "/auth/signup" || $uri === "/auth/login") {
+    if ($uri === "/signup" || $uri === "/login") {
         if ($method !== "POST") {
             $result = [
                 "status" => 405,
@@ -55,7 +55,7 @@ try {
             ];
         } else {
             $authController = new AuthController();
-            $result = $uri === "/auth/signup"
+            $result = $uri === "/signup"
                 ? $authController->signup($input)
                 : $authController->login($input);
         }
