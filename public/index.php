@@ -2,6 +2,17 @@
 
 date_default_timezone_set('Asia/Karachi');
 
+session_set_cookie_params([
+    "lifetime" => 0,
+    "path" => "/",
+    "httponly" => true,
+    "samesite" => "Lax",
+    // TODO: set to true in production, where the app is served over HTTPS.
+    "secure" => false
+]);
+
+session_start();
+
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
