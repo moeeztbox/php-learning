@@ -36,6 +36,19 @@ class UserRepository extends BaseRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findUserByEmail($email)
+    {
+        $sql = "SELECT * FROM users WHERE email = :email";
+
+        $statement = $this->connection->prepare($sql);
+
+        $statement->execute([
+            "email" => $email
+        ]);
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
     // UPDATE
     public function updateUser($id, $name, $email, $password, $roleId)
     {
@@ -67,6 +80,64 @@ class UserRepository extends BaseRepository
 
         return $statement->execute([
             "id" => $id
+        ]);
+    }
+
+    // LOGIN LOCKOUT
+    public function incrementFailedAttempts($id)
+    {
+        $sql = "UPDATE users
+                SET failed_attempts = failed_attempts + 1
+                WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        return $statement->execute([
+            "id" => $id
+        ]);
+    }
+
+    public function resetFailedAttempts($id)
+    {
+        $sql = "UPDATE users
+                SET failed_attempts = 0
+                WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        return $statement->execute([
+            "id" => $id
+        ]);
+    }
+
+    public function lockUser($id, $lockedUntil)
+    {
+        $sql = "UPDATE users
+                SET locked_until = :locked_until
+                WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        return $statement->execute([
+            "id" => $id,
+            "locked_until" => $lockedUntil
+        ]);
+    }
+
+    public function updateFailedAttemptsAndLock($id, $failedAttempts, $lockedUntil)
+    {
+        $sql = "UPDATE users
+                SET
+                    failed_attempts = :failed_attempts,
+                    locked_until = :locked_until
+                WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        return $statement->execute([
+            "id" => $id,
+            "failed_attempts" => $failedAttempts,
+            "locked_until" => $lockedUntil
         ]);
     }
 }
