@@ -72,12 +72,13 @@ try {
 
 } catch (Exception $e) {
 
+    // Log the real error server-side only; the client only ever sees a generic
+    // message, since exception text can contain DB/connection details.
+    error_log($e->getMessage());
+
     $result = [
         "status" => 500,
-        "body" => [
-            "message" => "Internal Server Error",
-            "error" => $e->getMessage()
-        ]
+        "body" => ["message" => "Internal Server Error"]
     ];
 }
 

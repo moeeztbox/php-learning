@@ -19,18 +19,32 @@ class AuthController
 
     public function signup($input)
     {
-        if (
-            !isset($input["name"]) ||
-            !isset($input["email"]) ||
-            !isset($input["password"])
-        ) {
+        $name = isset($input["name"]) ? trim($input["name"]) : "";
+        $email = isset($input["email"]) ? trim($input["email"]) : "";
+        $password = isset($input["password"]) ? trim($input["password"]) : "";
+
+        if ($name === "" || $email === "" || $password === "") {
             return [
                 "status" => 400,
                 "body" => ["message" => "name, email and password are required"]
             ];
         }
 
-        $existingUser = $this->userRepository->findUserByEmail($input["email"]);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                "status" => 400,
+                "body" => ["message" => "A valid email address is required"]
+            ];
+        }
+
+        if (strlen($password) < 8) {
+            return [
+                "status" => 400,
+                "body" => ["message" => "Password must be at least 8 characters long"]
+            ];
+        }
+
+        $existingUser = $this->userRepository->findUserByEmail($email);
 
         if ($existingUser) {
             return [
@@ -39,13 +53,13 @@ class AuthController
             ];
         }
 
-        $hashedPassword = password_hash($input["password"], PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // role_id is not part of the public signup contract; pass through if given,
         // otherwise leave it null (no default-role assumption is made here).
         $created = $this->userRepository->createUser(
-            $input["name"],
-            $input["email"],
+            $name,
+            $email,
             $hashedPassword,
             $input["role_id"] ?? null
         );
@@ -65,14 +79,17 @@ class AuthController
 
     public function login($input)
     {
-        if (!isset($input["email"]) || !isset($input["password"])) {
+        $email = isset($input["email"]) ? trim($input["email"]) : "";
+        $password = isset($input["password"]) ? trim($input["password"]) : "";
+
+        if ($email === "" || $password === "") {
             return [
                 "status" => 400,
                 "body" => ["message" => "email and password are required"]
             ];
         }
 
-        $user = $this->userRepository->findUserByEmail($input["email"]);
+        $user = $this->userRepository->findUserByEmail($email);
 
         if (!$user) {
             return [
@@ -81,14 +98,23 @@ class AuthController
             ];
         }
 
-        if (!empty($user["locked_until"]) && strtotime($user["locked_until"]) > time()) {
+        if ($this->isAccountLocked($user)) {
             return [
                 "status" => 403,
                 "body" => ["message" => "Account is locked. Please try again later."]
             ];
         }
 
-        if (!password_verify($input["password"], $user["password"])) {
+        // A previous lock has expired: clear it before judging this attempt, so
+        // failed_attempts carried over from the last lockout doesn't immediately
+        // re-lock the account on the very next try.
+        if (!empty($user["locked_until"])) {
+            $this->userRepository->updateFailedAttemptsAndLock($user["id"], 0, null);
+            $user["failed_attempts"] = 0;
+            $user["locked_until"] = null;
+        }
+
+        if (!password_verify($password, $user["password"])) {
             $failedAttempts = $user["failed_attempts"] + 1;
 
             if ($failedAttempts >= self::MAX_FAILED_ATTEMPTS) {
@@ -122,5 +148,10 @@ class AuthController
                 "user" => $user
             ]
         ];
+    }
+
+    private function isAccountLocked($user)
+    {
+        return !empty($user["locked_until"]) && strtotime($user["locked_until"]) > time();
     }
 }

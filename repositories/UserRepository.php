@@ -97,33 +97,6 @@ class UserRepository extends BaseRepository
         ]);
     }
 
-    public function resetFailedAttempts($id)
-    {
-        $sql = "UPDATE users
-                SET failed_attempts = 0
-                WHERE id = :id";
-
-        $statement = $this->connection->prepare($sql);
-
-        return $statement->execute([
-            "id" => $id
-        ]);
-    }
-
-    public function lockUser($id, $lockedUntil)
-    {
-        $sql = "UPDATE users
-                SET locked_until = :locked_until
-                WHERE id = :id";
-
-        $statement = $this->connection->prepare($sql);
-
-        return $statement->execute([
-            "id" => $id,
-            "locked_until" => $lockedUntil
-        ]);
-    }
-
     public function updateFailedAttemptsAndLock($id, $failedAttempts, $lockedUntil)
     {
         $sql = "UPDATE users
