@@ -7,6 +7,7 @@ require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
 require_once __DIR__ . "/../controllers/RoleController.php";
+require_once __DIR__ . "/../controllers/AuthController.php";
 
 $method = $_SERVER["REQUEST_METHOD"];
 
@@ -43,7 +44,22 @@ $routes = [
 
 try {
 
-    if (isset($routes[$uri])) {
+    // Auth routes are handled separately from $routes: both are POST-only actions
+    // on their own paths, not a GET/POST/PUT/DELETE resource, so they don't go
+    // through handleRequest().
+    if ($uri === "/signup" || $uri === "/login") {
+        if ($method !== "POST") {
+            $result = [
+                "status" => 405,
+                "body" => ["message" => "Method Not Allowed"]
+            ];
+        } else {
+            $authController = new AuthController();
+            $result = $uri === "/signup"
+                ? $authController->signup($input)
+                : $authController->login($input);
+        }
+    } elseif (isset($routes[$uri])) {
         $controllerClass = $routes[$uri];
         $controller = new $controllerClass();
         $result = $controller->handleRequest($method, $input);
@@ -56,12 +72,13 @@ try {
 
 } catch (Exception $e) {
 
+    // Log the real error server-side only; the client only ever sees a generic
+    // message, since exception text can contain DB/connection details.
+    error_log($e->getMessage());
+
     $result = [
         "status" => 500,
-        "body" => [
-            "message" => "Internal Server Error",
-            "error" => $e->getMessage()
-        ]
+        "body" => ["message" => "Internal Server Error"]
     ];
 }
 
