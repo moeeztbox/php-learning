@@ -16,6 +16,7 @@ session_start();
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
+require_once __DIR__ . "/../helpers/SessionAuth.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
@@ -78,9 +79,18 @@ try {
             }
         }
     } elseif (isset($routes[$uri])) {
-        $controllerClass = $routes[$uri];
-        $controller = new $controllerClass();
-        $result = $controller->handleRequest($method, $input);
+        // Every non-auth route requires an authenticated session. Checked once
+        // here instead of inside each controller, so the check isn't duplicated
+        // across ProjectController, TaskController, UserController, RoleController.
+        $authError = SessionAuth::check();
+
+        if ($authError) {
+            $result = $authError;
+        } else {
+            $controllerClass = $routes[$uri];
+            $controller = new $controllerClass();
+            $result = $controller->handleRequest($method, $input);
+        }
     } else {
         $result = [
             "status" => 404,
