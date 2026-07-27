@@ -10,7 +10,7 @@ class AuthController
     private $userRepository;
 
     private const MAX_FAILED_ATTEMPTS = 5;
-    private const LOCKOUT_MINUTES = 15;
+    private const LOCKOUT_MINUTES = 10;
 
     public function __construct()
     {
@@ -110,7 +110,8 @@ class AuthController
             ];
         }
 
-        $this->userRepository->resetFailedAttempts($user["id"]);
+        // Successful login clears both the attempt counter and any lock in one write.
+        $this->userRepository->updateFailedAttemptsAndLock($user["id"], 0, null);
 
         unset($user["password"]);
 
