@@ -139,6 +139,20 @@ class AuthController
         // Successful login clears both the attempt counter and any lock in one write.
         $this->userRepository->updateFailedAttemptsAndLock($user["id"], 0, null);
 
+        // Regenerate the session ID on every successful login (keeping the same
+        // session data) to prevent session fixation: an attacker who planted a
+        // session ID on the victim before login can't reuse it as an authenticated
+        // session afterward, since the ID changes at the moment of authentication.
+        session_regenerate_id(true);
+
+        // Store the minimum identity/authorization data needed by later requests,
+        // so subsequent requests can identify and authorize the user via
+        // $_SESSION without re-querying credentials on every call.
+        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["name"] = $user["name"];
+        $_SESSION["email"] = $user["email"];
+        $_SESSION["role_id"] = $user["role_id"];
+
         unset($user["password"]);
 
         return [
@@ -147,6 +161,19 @@ class AuthController
                 "message" => "Login successful",
                 "user" => $user
             ]
+        ];
+    }
+
+    public function logout()
+    {
+        // Clear all session variables first, then destroy the session data and
+        // its cookie server-side, fully ending the authenticated session.
+        session_unset();
+        session_destroy();
+
+        return [
+            "status" => 200,
+            "body" => ["message" => "Logout successful"]
         ];
     }
 
