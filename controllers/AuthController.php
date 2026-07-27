@@ -164,6 +164,19 @@ class AuthController
         ];
     }
 
+    public function logout()
+    {
+        // Clear all session variables first, then destroy the session data and
+        // its cookie server-side, fully ending the authenticated session.
+        session_unset();
+        session_destroy();
+
+        return [
+            "status" => 200,
+            "body" => ["message" => "Logout successful"]
+        ];
+    }
+
     private function isAccountLocked($user)
     {
         return !empty($user["locked_until"]) && strtotime($user["locked_until"]) > time();
