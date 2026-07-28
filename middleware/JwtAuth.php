@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/JwtHelper.php";
+require_once __DIR__ . "/../helpers/JwtHelper.php";
 
 // JWT counterpart to SessionAuth: guards routes that authenticate via a Bearer
 // token instead of a PHP session. Unlike SessionAuth, the authenticated user's

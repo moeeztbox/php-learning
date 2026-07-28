@@ -16,8 +16,8 @@ session_start();
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
-require_once __DIR__ . "/../helpers/SessionAuth.php";
-require_once __DIR__ . "/../helpers/JwtAuth.php";
+require_once __DIR__ . "/../middleware/SessionAuth.php";
+require_once __DIR__ . "/../middleware/JwtAuth.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
