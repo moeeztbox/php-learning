@@ -61,7 +61,7 @@ try {
     // Auth routes are handled separately from $routes: both are POST-only actions
     // on their own paths, not a GET/POST/PUT/DELETE resource, so they don't go
     // through handleRequest().
-    if ($uri === "/signup" || $uri === "/login" || $uri === "/logout") {
+    if ($uri === "/signup" || $uri === "/login" || $uri === "/logout" || $uri === "/login/jwt") {
         if ($method !== "POST") {
             $result = [
                 "status" => 405,
@@ -74,6 +74,8 @@ try {
                 $result = $authController->signup($input);
             } elseif ($uri === "/login") {
                 $result = $authController->login($input);
+            } elseif ($uri === "/login/jwt") {
+                $result = $authController->loginWithJwt($input);
             } else {
                 $result = $authController->logout();
             }
