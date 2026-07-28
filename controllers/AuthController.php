@@ -225,6 +225,16 @@ class AuthController
         ];
     }
 
+    // Protected via JwtAuth in index.php: only reachable with a valid Bearer
+    // token, whose decoded claims are passed in as $authenticatedUser.
+    public function me($authenticatedUser)
+    {
+        return [
+            "status" => 200,
+            "body" => ["user" => $authenticatedUser]
+        ];
+    }
+
     public function logout()
     {
         // Clear all session variables first, then destroy the session data and

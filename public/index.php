@@ -17,6 +17,7 @@ header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
 require_once __DIR__ . "/../helpers/SessionAuth.php";
+require_once __DIR__ . "/../helpers/JwtAuth.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
@@ -78,6 +79,27 @@ try {
                 $result = $authController->loginWithJwt($input);
             } else {
                 $result = $authController->logout();
+            }
+        }
+    } elseif ($uri === "/me") {
+        // Protected via JWT rather than the session guard: requires a valid
+        // Bearer token in the Authorization header instead of $_SESSION.
+        if ($method !== "GET") {
+            $result = [
+                "status" => 405,
+                "body" => ["message" => "Method Not Allowed"]
+            ];
+        } else {
+            $jwtResult = JwtAuth::check();
+
+            if (!$jwtResult["success"]) {
+                $result = [
+                    "status" => $jwtResult["status"],
+                    "body" => $jwtResult["body"]
+                ];
+            } else {
+                $authController = new AuthController();
+                $result = $authController->me($jwtResult["user"]);
             }
         }
     } elseif (isset($routes[$uri])) {
