@@ -163,3 +163,84 @@ Both session-based and token-based authentication are secure when implemented co
 Session authentication is simple and ideal for traditional web applications, while JWT authentication provides better scalability and flexibility for APIs and modern applications.
 
 The choice between them depends on the application's architecture, security requirements, and deployment environment rather than one method being universally better than the other.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Week 2 - Day 5
+
+# OAuth2 Third-Party Authentication Concepts
+
+## What is OAuth?
+
+OAuth (Open Authorization) is an authorization protocol that allows an application to access a user's information from another service without sharing the user's password.
+
+It is commonly used for third-party login systems such as:
+
+- Sign in with Google
+- Sign in with Facebook
+- Sign in with GitHub
+
+The main purpose of OAuth is to allow secure access by using tokens instead of sharing user credentials.
+
+---
+
+# What is "Sign in with Google"?
+
+"Sign in with Google" is an implementation of OAuth where an application uses Google's authentication system to verify a user's identity.
+
+When a user clicks "Sign in with Google":
+
+- The application does not receive the user's Google password.
+- Google handles the authentication process.
+- Google provides an authorization code/token to the application.
+- The application uses that token to get approved user information like name and email.
+
+This keeps the user's Google account credentials secure.
+
+---
+
+# OAuth2 Authorization Code Flow
+
+
+---
+
+# OAuth Flow Explanation
+
+1. The user clicks the **Sign in with Google** button.
+
+2. The application redirects the user to Google's authentication page.
+
+3. The user logs in and gives permission to share their information.
+
+4. Google sends an authorization code back to the application.
+
+5. The application sends this authorization code to Google to exchange it for an access token.
+
+6. Google verifies the code and returns an access token.
+
+7. The application uses the access token to request the user's approved information.
+
+8. The application creates its own session or JWT and logs the user into the system.
+
+---
+
+# Important Point
+
+The user's password is never shared with the application.
+
+Google handles authentication, while the application only receives limited information through tokens.
+
+---
+
+# Benefits of OAuth
+
+- Users do not need to create a separate password for every application.
+- Applications never store third-party passwords.
+- Users can control and revoke application access.
+- Authentication is handled by trusted providers.
+
+---
+
+# Conclusion
+
+OAuth2 provides a secure way to implement third-party authentication. Features like "Sign in with Google" use the OAuth2 authorization code flow to verify users while keeping their passwords protected.
