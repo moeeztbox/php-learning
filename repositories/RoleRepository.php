@@ -8,12 +8,13 @@ class RoleRepository extends BaseRepository
 {
     public function createRole($name)
     {
-       $sql = "INSERT INTO roles (name)
-        VALUES (?)";
+        $sql = "INSERT INTO roles (name) VALUES (:name)";
 
         $statement = $this->connection->prepare($sql);
 
-        return $statement->execute([$name]);
+        return $statement->execute([
+            "name" => $name
+        ]);
     }
 
     public function getAllRoles()
@@ -28,24 +29,24 @@ class RoleRepository extends BaseRepository
     }
     public function updateRole($id, $name)
     {
-         $sql = "UPDATE roles
-                 SET name = ?
-                 WHERE id = ?";
+        $sql = "UPDATE roles SET name = :name WHERE id = :id";
 
-         $statement = $this->connection->prepare($sql);
+        $statement = $this->connection->prepare($sql);
 
         return $statement->execute([
-        $name,
-        $id
+            "id" => $id,
+            "name" => $name
         ]);
     }
+
     public function deleteRole($id)
     {
-         $sql = "DELETE FROM roles
-            WHERE id = ?";
+        $sql = "DELETE FROM roles WHERE id = :id";
 
-         $statement = $this->connection->prepare($sql);
+        $statement = $this->connection->prepare($sql);
 
-    return $statement->execute([$id]);
+        return $statement->execute([
+            "id" => $id
+        ]);
     }
 }

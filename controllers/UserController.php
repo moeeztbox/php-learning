@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/UserRepository.php";
+require_once __DIR__ . "/../helpers/PasswordHelper.php";
 
 // Refactor: handleRequest() dispatch and field validation now live in BaseController.
 // This class only implements the four user-specific actions.
@@ -32,10 +33,12 @@ class UserController extends BaseController
             return $error;
         }
 
+        $hashedPassword = PasswordHelper::hashPassword($input["password"]);
+
         $created = $this->userRepository->createUser(
             $input["name"],
             $input["email"],
-            $input["password"],
+            $hashedPassword,
             $input["role_id"]
         );
 
@@ -60,11 +63,13 @@ class UserController extends BaseController
             return $error;
         }
 
+        $hashedPassword = PasswordHelper::hashPassword($input["password"]);
+
         $updated = $this->userRepository->updateUser(
             $input["id"],
             $input["name"],
             $input["email"],
-            $input["password"],
+            $hashedPassword,
             $input["role_id"]
         );
 

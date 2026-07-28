@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/../repositories/UserRepository.php";
 require_once __DIR__ . "/../helpers/JwtHelper.php";
+require_once __DIR__ . "/../helpers/PasswordHelper.php";
 
 // Standalone controller: signup/login don't map to the GET/POST/PUT/DELETE-per-resource
 // shape BaseController dispatches (both are POST, on two different routes), so this
@@ -54,7 +55,7 @@ class AuthController
             ];
         }
 
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $hashedPassword = PasswordHelper::hashPassword($password);
 
         // role_id is not part of the public signup contract; pass through if given,
         // otherwise leave it null (no default-role assumption is made here).
@@ -190,7 +191,7 @@ class AuthController
             $user["locked_until"] = null;
         }
 
-        if (!password_verify($password, $user["password"])) {
+        if (!PasswordHelper::verifyPassword($password, $user["password"])) {
             $failedAttempts = $user["failed_attempts"] + 1;
 
             if ($failedAttempts >= self::MAX_FAILED_ATTEMPTS) {

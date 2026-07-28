@@ -25,9 +25,11 @@ class UserRepository extends BaseRepository
     }
 
     // READ
+    // Password intentionally excluded: this feeds user-listing responses, which
+    // must never expose password hashes.
     public function getAllUsers()
     {
-        $sql = "SELECT * FROM users";
+        $sql = "SELECT id, name, email, role_id, created_at, updated_at FROM users";
 
         $statement = $this->connection->prepare($sql);
 
@@ -36,9 +38,13 @@ class UserRepository extends BaseRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Used only for authentication (AuthController), which is why this is the
+    // one query that does need the password hash and lockout state back.
     public function findUserByEmail($email)
     {
-        $sql = "SELECT * FROM users WHERE email = :email";
+        $sql = "SELECT id, name, email, password, role_id, failed_attempts, locked_until
+                FROM users
+                WHERE email = :email";
 
         $statement = $this->connection->prepare($sql);
 
