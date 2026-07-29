@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/TaskRepository.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
 // Refactor: handleRequest() dispatch and field validation now live in BaseController.
 // This class only implements the four task-specific actions.
@@ -44,16 +45,10 @@ class TaskController extends BaseController
         );
 
         if ($created) {
-            return [
-                "status" => 201,
-                "body" => ["message" => "Task created successfully"]
-            ];
+            return Response::result(201, "Task created successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to create task"]
-        ];
+        return Response::result(500, "Failed to create task");
     }
 
     protected function update($input)
@@ -77,16 +72,10 @@ class TaskController extends BaseController
         );
 
         if ($updated) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Task updated successfully"]
-            ];
+            return Response::result(200, "Task updated successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to update task"]
-        ];
+        return Response::result(500, "Failed to update task");
     }
 
     protected function delete($input)
@@ -100,15 +89,9 @@ class TaskController extends BaseController
         $deleted = $this->taskRepository->deleteTask($input["id"]);
 
         if ($deleted) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Task deleted successfully"]
-            ];
+            return Response::result(200, "Task deleted successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to delete task"]
-        ];
+        return Response::result(500, "Failed to delete task");
     }
 }

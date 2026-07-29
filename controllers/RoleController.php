@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/RoleRepository.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
 // Refactor: handleRequest() dispatch and field validation now live in BaseController.
 // This class only implements the four role-specific actions.
@@ -35,16 +36,10 @@ class RoleController extends BaseController
         $created = $this->roleRepository->createRole($input["name"]);
 
         if ($created) {
-            return [
-                "status" => 201,
-                "body" => ["message" => "Role created successfully"]
-            ];
+            return Response::result(201, "Role created successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to create role"]
-        ];
+        return Response::result(500, "Failed to create role");
     }
 
     protected function update($input)
@@ -58,16 +53,10 @@ class RoleController extends BaseController
         $updated = $this->roleRepository->updateRole($input["id"], $input["name"]);
 
         if ($updated) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Role updated successfully"]
-            ];
+            return Response::result(200, "Role updated successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to update role"]
-        ];
+        return Response::result(500, "Failed to update role");
     }
 
     protected function delete($input)
@@ -81,15 +70,9 @@ class RoleController extends BaseController
         $deleted = $this->roleRepository->deleteRole($input["id"]);
 
         if ($deleted) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Role deleted successfully"]
-            ];
+            return Response::result(200, "Role deleted successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to delete role"]
-        ];
+        return Response::result(500, "Failed to delete role");
     }
 }

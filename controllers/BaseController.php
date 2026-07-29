@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../helpers/Response.php";
+
 // Refactor: every controller (User, Role, Project, Task) repeated an identical
 // handleRequest() switch that dispatches GET/POST/PUT/DELETE to getAll()/create()/
 // update()/delete(). That dispatch logic now lives once here (Single Responsibility:
@@ -24,10 +26,7 @@ abstract class BaseController
                 return $this->delete($input);
 
             default:
-                return [
-                    "status" => 405,
-                    "body" => ["message" => "Method Not Allowed"]
-                ];
+                return Response::result(405, "Method Not Allowed");
         }
     }
 
@@ -39,10 +38,7 @@ abstract class BaseController
     {
         foreach ($fields as $field) {
             if (!isset($input[$field])) {
-                return [
-                    "status" => 400,
-                    "body" => ["message" => $this->formatRequiredFieldsMessage($fields)]
-                ];
+                return Response::result(400, $this->formatRequiredFieldsMessage($fields));
             }
         }
 

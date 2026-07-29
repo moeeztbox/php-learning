@@ -13,11 +13,7 @@ class JwtAuth
         $authHeader = self::getAuthorizationHeader();
 
         if (!$authHeader || stripos($authHeader, "Bearer ") !== 0) {
-            return [
-                "success" => false,
-                "status" => 401,
-                "body" => ["message" => "Unauthorized"]
-            ];
+            return self::unauthorized("Unauthorized");
         }
 
         $token = trim(substr($authHeader, 7));
@@ -25,16 +21,23 @@ class JwtAuth
         $payload = JwtHelper::verifyToken($token);
 
         if (!$payload) {
-            return [
-                "success" => false,
-                "status" => 401,
-                "body" => ["message" => "Invalid or expired token"]
-            ];
+            return self::unauthorized("Invalid or expired token");
         }
 
         return [
             "success" => true,
             "user" => $payload
+        ];
+    }
+
+    // Kept distinct from Response::result(): callers need the "success" flag to
+    // tell this apart from the successful "user" payload shape above.
+    private static function unauthorized($message)
+    {
+        return [
+            "success" => false,
+            "status" => 401,
+            "body" => ["message" => $message]
         ];
     }
 

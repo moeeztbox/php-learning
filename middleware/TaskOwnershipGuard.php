@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/../repositories/TaskRepository.php";
 require_once __DIR__ . "/../repositories/RoleRepository.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
 // Ownership guard for updating tasks: Admin and Manager may update any task;
 // any other role (e.g. Employee) may only update a task whose assigned_to
@@ -45,9 +46,6 @@ class TaskOwnershipGuard
 
     private static function forbidden()
     {
-        return [
-            "status" => 403,
-            "body" => ["message" => "Forbidden: you can only update tasks assigned to you"]
-        ];
+        return Response::result(403, "Forbidden: you can only update tasks assigned to you");
     }
 }
