@@ -18,6 +18,7 @@ header("Content-Type: application/json");
 require_once __DIR__ . "/../helpers/Response.php";
 require_once __DIR__ . "/../middleware/SessionAuth.php";
 require_once __DIR__ . "/../middleware/JwtAuth.php";
+require_once __DIR__ . "/../middleware/AdminGuard.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
@@ -111,9 +112,20 @@ try {
         if ($authError) {
             $result = $authError;
         } else {
-            $controllerClass = $routes[$uri];
-            $controller = new $controllerClass();
-            $result = $controller->handleRequest($method, $input);
+            // Delete Project additionally requires the Admin role. Scoped to
+            // this exact route + method so every other action (including the
+            // rest of /projects) is unaffected.
+            $adminError = ($uri === "/projects" && $method === "DELETE")
+                ? AdminGuard::check()
+                : null;
+
+            if ($adminError) {
+                $result = $adminError;
+            } else {
+                $controllerClass = $routes[$uri];
+                $controller = new $controllerClass();
+                $result = $controller->handleRequest($method, $input);
+            }
         }
     } else {
         $result = [

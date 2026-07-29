@@ -27,6 +27,20 @@ class RoleRepository extends BaseRepository
 
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function findRoleById($id)
+    {
+        $sql = "SELECT id, name FROM roles WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        $statement->execute([
+            "id" => $id
+        ]);
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function updateRole($id, $name)
     {
         $sql = "UPDATE roles SET name = :name WHERE id = :id";
