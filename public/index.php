@@ -19,6 +19,7 @@ require_once __DIR__ . "/../helpers/Response.php";
 require_once __DIR__ . "/../middleware/SessionAuth.php";
 require_once __DIR__ . "/../middleware/JwtAuth.php";
 require_once __DIR__ . "/../middleware/AdminGuard.php";
+require_once __DIR__ . "/../middleware/TaskOwnershipGuard.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
@@ -119,8 +120,16 @@ try {
                 ? AdminGuard::check()
                 : null;
 
+            // Update Task additionally requires ownership (or Admin/Manager).
+            // Scoped to this exact route + method the same way.
+            $ownershipError = ($uri === "/tasks" && $method === "PUT")
+                ? TaskOwnershipGuard::check($input)
+                : null;
+
             if ($adminError) {
                 $result = $adminError;
+            } elseif ($ownershipError) {
+                $result = $ownershipError;
             } else {
                 $controllerClass = $routes[$uri];
                 $controller = new $controllerClass();
