@@ -244,3 +244,27 @@ Google handles authentication, while the application only receives limited infor
 # Conclusion
 
 OAuth2 provides a secure way to implement third-party authentication. Features like "Sign in with Google" use the OAuth2 authorization code flow to verify users while keeping their passwords protected.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Week 3 - Day 4
+
+## IDOR Vulnerability Fix
+
+### Bug Description
+
+The vulnerable endpoint allowed users to access or modify resources by directly changing the resource ID in the request without verifying ownership or permission. For example, a user could send another user's task ID and attempt to update that task.
+
+### Why It Was Dangerous
+
+This was a security risk because authenticated users could potentially modify data that did not belong to them. Being logged in does not automatically mean the user has permission to access every resource. This could lead to unauthorized data changes and privacy issues.
+
+### Fix Implemented
+
+Added server-side authorization checks before allowing resource updates. The system now verifies the ownership of the requested resource using the logged-in user's session data and database records.
+
+* Employees can only update tasks assigned to them.
+* Managers and Admins can update any task based on their role.
+* Unauthorized requests are blocked with a `403 Forbidden` response.
+
+This prevents IDOR attacks by ensuring users can only perform actions on resources they are authorized to access.
