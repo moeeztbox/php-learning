@@ -59,6 +59,19 @@ class TaskRepository extends BaseRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findTaskById($id)
+    {
+        $sql = "SELECT * FROM tasks WHERE id = :id";
+
+        $statement = $this->connection->prepare($sql);
+
+        $statement->execute([
+            "id" => $id
+        ]);
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
     // UPDATE
     public function updateTask(
         $id,

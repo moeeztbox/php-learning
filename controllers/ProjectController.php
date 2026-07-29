@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/ProjectRepository.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
 // Refactor: handleRequest() dispatch and field validation now live in BaseController.
 // This class only implements the four project-specific actions.
@@ -39,16 +40,10 @@ class ProjectController extends BaseController
         );
 
         if ($created) {
-            return [
-                "status" => 201,
-                "body" => ["message" => "Project created successfully"]
-            ];
+            return Response::result(201, "Project created successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to create project"]
-        ];
+        return Response::result(500, "Failed to create project");
     }
 
     protected function update($input)
@@ -67,16 +62,10 @@ class ProjectController extends BaseController
         );
 
         if ($updated) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Project updated successfully"]
-            ];
+            return Response::result(200, "Project updated successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to update project"]
-        ];
+        return Response::result(500, "Failed to update project");
     }
 
     protected function delete($input)
@@ -90,15 +79,9 @@ class ProjectController extends BaseController
         $deleted = $this->projectRepository->deleteProject($input["id"]);
 
         if ($deleted) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "Project deleted successfully"]
-            ];
+            return Response::result(200, "Project deleted successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to delete project"]
-        ];
+        return Response::result(500, "Failed to delete project");
     }
 }

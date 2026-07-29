@@ -7,8 +7,9 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 // JWT service: wraps firebase/php-jwt so callers never touch the library
-// directly. Configuration (secret, algorithm, expiry) lives in config/Jwt.php,
-// not here — this class only implements encode/decode behavior.
+// directly. Configuration (secret, algorithm, expiry) lives in
+// config/JwtConfig.php, not here — this class only implements encode/decode
+// behavior.
 class JwtHelper
 {
     public static function generateToken(array $payload, $expiresInSeconds = null)

@@ -3,6 +3,7 @@
 require_once __DIR__ . "/BaseController.php";
 require_once __DIR__ . "/../repositories/UserRepository.php";
 require_once __DIR__ . "/../helpers/PasswordHelper.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
 // Refactor: handleRequest() dispatch and field validation now live in BaseController.
 // This class only implements the four user-specific actions.
@@ -43,16 +44,10 @@ class UserController extends BaseController
         );
 
         if ($created) {
-            return [
-                "status" => 201,
-                "body" => ["message" => "User created successfully"]
-            ];
+            return Response::result(201, "User created successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to create user"]
-        ];
+        return Response::result(500, "Failed to create user");
     }
 
     protected function update($input)
@@ -74,16 +69,10 @@ class UserController extends BaseController
         );
 
         if ($updated) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "User updated successfully"]
-            ];
+            return Response::result(200, "User updated successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to update user"]
-        ];
+        return Response::result(500, "Failed to update user");
     }
 
     protected function delete($input)
@@ -97,15 +86,9 @@ class UserController extends BaseController
         $deleted = $this->userRepository->deleteUser($input["id"]);
 
         if ($deleted) {
-            return [
-                "status" => 200,
-                "body" => ["message" => "User deleted successfully"]
-            ];
+            return Response::result(200, "User deleted successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to delete user"]
-        ];
+        return Response::result(500, "Failed to delete user");
     }
 }

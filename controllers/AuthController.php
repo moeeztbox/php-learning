@@ -3,10 +3,12 @@
 require_once __DIR__ . "/../repositories/UserRepository.php";
 require_once __DIR__ . "/../helpers/JwtHelper.php";
 require_once __DIR__ . "/../helpers/PasswordHelper.php";
+require_once __DIR__ . "/../helpers/Response.php";
 
-// Standalone controller: signup/login don't map to the GET/POST/PUT/DELETE-per-resource
-// shape BaseController dispatches (both are POST, on two different routes), so this
-// controller is not extended from BaseController and defines its own entry points.
+// Standalone controller: auth actions (signup, login, JWT login, logout, "me")
+// don't map to the GET/POST/PUT/DELETE-per-resource shape BaseController
+// dispatches, so this controller is not extended from BaseController and
+// defines its own entry points instead.
 class AuthController
 {
     private $userRepository;
@@ -21,38 +23,26 @@ class AuthController
 
     public function signup($input)
     {
-        $name = isset($input["name"]) ? trim($input["name"]) : "";
-        $email = isset($input["email"]) ? trim($input["email"]) : "";
-        $password = isset($input["password"]) ? trim($input["password"]) : "";
+        $name = $this->trimmedInput($input, "name");
+        $email = $this->trimmedInput($input, "email");
+        $password = $this->trimmedInput($input, "password");
 
         if ($name === "" || $email === "" || $password === "") {
-            return [
-                "status" => 400,
-                "body" => ["message" => "name, email and password are required"]
-            ];
+            return Response::result(400, "name, email and password are required");
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "A valid email address is required"]
-            ];
+            return Response::result(400, "A valid email address is required");
         }
 
         if (strlen($password) < 8) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "Password must be at least 8 characters long"]
-            ];
+            return Response::result(400, "Password must be at least 8 characters long");
         }
 
         $existingUser = $this->userRepository->findUserByEmail($email);
 
         if ($existingUser) {
-            return [
-                "status" => 400,
-                "body" => ["message" => "Email is already registered"]
-            ];
+            return Response::result(400, "Email is already registered");
         }
 
         $hashedPassword = PasswordHelper::hashPassword($password);
@@ -67,16 +57,10 @@ class AuthController
         );
 
         if ($created) {
-            return [
-                "status" => 201,
-                "body" => ["message" => "User registered successfully"]
-            ];
+            return Response::result(201, "User registered successfully");
         }
 
-        return [
-            "status" => 500,
-            "body" => ["message" => "Failed to register user"]
-        ];
+        return Response::result(500, "Failed to register user");
     }
 
     public function login($input)
@@ -84,10 +68,7 @@ class AuthController
         $result = $this->authenticate($input);
 
         if (!$result["success"]) {
-            return [
-                "status" => $result["status"],
-                "body" => $result["body"]
-            ];
+            return $this->authFailure($result);
         }
 
         $user = $result["user"];
@@ -123,10 +104,7 @@ class AuthController
         $result = $this->authenticate($input);
 
         if (!$result["success"]) {
-            return [
-                "status" => $result["status"],
-                "body" => $result["body"]
-            ];
+            return $this->authFailure($result);
         }
 
         $user = $result["user"];
@@ -153,8 +131,8 @@ class AuthController
     // regardless of which login method the caller ends up using.
     private function authenticate($input)
     {
-        $email = isset($input["email"]) ? trim($input["email"]) : "";
-        $password = isset($input["password"]) ? trim($input["password"]) : "";
+        $email = $this->trimmedInput($input, "email");
+        $password = $this->trimmedInput($input, "password");
 
         if ($email === "" || $password === "") {
             return [
@@ -243,14 +221,30 @@ class AuthController
         session_unset();
         session_destroy();
 
-        return [
-            "status" => 200,
-            "body" => ["message" => "Logout successful"]
-        ];
+        return Response::result(200, "Logout successful");
     }
 
     private function isAccountLocked($user)
     {
         return !empty($user["locked_until"]) && strtotime($user["locked_until"]) > time();
+    }
+
+    // Repeated by every field signup()/authenticate() reads from the request
+    // body: missing key -> empty string, otherwise trimmed.
+    private function trimmedInput($input, $key)
+    {
+        return isset($input[$key]) ? trim($input[$key]) : "";
+    }
+
+    // login() and loginWithJwt() both call authenticate() and, on failure,
+    // need to unwrap its ["success" => false, "status" => ..., "body" => ...]
+    // shape into the plain ["status" => ..., "body" => ...] every controller
+    // method returns.
+    private function authFailure($result)
+    {
+        return [
+            "status" => $result["status"],
+            "body" => $result["body"]
+        ];
     }
 }

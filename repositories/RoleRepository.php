@@ -6,6 +6,7 @@ require_once __DIR__ . "/BaseRepository.php";
 // only holds role-specific SQL.
 class RoleRepository extends BaseRepository
 {
+    // CREATE
     public function createRole($name)
     {
         $sql = "INSERT INTO roles (name) VALUES (:name)";
@@ -17,6 +18,7 @@ class RoleRepository extends BaseRepository
         ]);
     }
 
+    // READ
     public function getAllRoles()
     {
         $sql = "SELECT * FROM roles";
@@ -41,6 +43,7 @@ class RoleRepository extends BaseRepository
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
+    // UPDATE
     public function updateRole($id, $name)
     {
         $sql = "UPDATE roles SET name = :name WHERE id = :id";
@@ -53,6 +56,7 @@ class RoleRepository extends BaseRepository
         ]);
     }
 
+    // DELETE
     public function deleteRole($id)
     {
         $sql = "DELETE FROM roles WHERE id = :id";

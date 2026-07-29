@@ -16,59 +16,49 @@ session_start();
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../helpers/Response.php";
+require_once __DIR__ . "/../helpers/Request.php";
 require_once __DIR__ . "/../middleware/SessionAuth.php";
 require_once __DIR__ . "/../middleware/JwtAuth.php";
 require_once __DIR__ . "/../middleware/AdminGuard.php";
+require_once __DIR__ . "/../middleware/TaskOwnershipGuard.php";
 require_once __DIR__ . "/../controllers/ProjectController.php";
 require_once __DIR__ . "/../controllers/TaskController.php";
 require_once __DIR__ . "/../controllers/UserController.php";
 require_once __DIR__ . "/../controllers/RoleController.php";
 require_once __DIR__ . "/../controllers/AuthController.php";
 
-$method = $_SERVER["REQUEST_METHOD"];
+$method = Request::method();
+$uri = Request::uri("/php-learning/public");
+$input = Request::jsonBody();
 
-$uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
-
-$basePath = "/php-learning/public";
-
-if (strpos($uri, $basePath) === 0) {
-    $uri = substr($uri, strlen($basePath));
-}
-
-$uri = rtrim($uri, "/");
-
-if ($uri === "") {
-    $uri = "/";
-}
-
-$rawInput = file_get_contents("php://input");
-$input = json_decode($rawInput, true);
-
-if (!is_array($input)) {
-    $input = [];
-}
-
-// Refactor: route map replaces the old switch statement. Each URI maps to the
-// controller class responsible for it, so adding a new resource is a one-line
-// addition here instead of a new switch case in this file.
+// Each route declares its controller and any per-method guards, so adding a
+// new resource or a new guarded action is a config entry here instead of a
+// new elseif branch or another ad-hoc $xError ternary.
 $routes = [
-    "/projects" => "ProjectController",
-    "/tasks" => "TaskController",
-    "/users" => "UserController",
-    "/roles" => "RoleController",
+    "/projects" => [
+        "controller" => "ProjectController",
+        "guards" => [
+            "DELETE" => ["AdminGuard"],
+        ],
+    ],
+    "/tasks" => [
+        "controller" => "TaskController",
+        "guards" => [
+            "PUT" => ["TaskOwnershipGuard"],
+        ],
+    ],
+    "/users" => ["controller" => "UserController", "guards" => []],
+    "/roles" => ["controller" => "RoleController", "guards" => []],
 ];
 
 try {
 
-    // Auth routes are handled separately from $routes: both are POST-only actions
-    // on their own paths, not a GET/POST/PUT/DELETE resource, so they don't go
-    // through handleRequest().
+    // Auth routes are handled separately from $routes: these are POST-only
+    // actions on their own paths, not a GET/POST/PUT/DELETE resource, so they
+    // don't go through handleRequest().
     if ($uri === "/signup" || $uri === "/login" || $uri === "/logout" || $uri === "/login/jwt") {
         if ($method !== "POST") {
-            $result = [
-                "status" => 405,
-                "body" => ["message" => "Method Not Allowed"]
-            ];
+            $result = Response::result(405, "Method Not Allowed");
         } else {
             $authController = new AuthController();
 
@@ -86,10 +76,7 @@ try {
         // Protected via JWT rather than the session guard: requires a valid
         // Bearer token in the Authorization header instead of $_SESSION.
         if ($method !== "GET") {
-            $result = [
-                "status" => 405,
-                "body" => ["message" => "Method Not Allowed"]
-            ];
+            $result = Response::result(405, "Method Not Allowed");
         } else {
             $jwtResult = JwtAuth::check();
 
@@ -104,6 +91,8 @@ try {
             }
         }
     } elseif (isset($routes[$uri])) {
+        $route = $routes[$uri];
+
         // Every non-auth route requires an authenticated session. Checked once
         // here instead of inside each controller, so the check isn't duplicated
         // across ProjectController, TaskController, UserController, RoleController.
@@ -112,26 +101,30 @@ try {
         if ($authError) {
             $result = $authError;
         } else {
-            // Delete Project additionally requires the Admin role. Scoped to
-            // this exact route + method so every other action (including the
-            // rest of /projects) is unaffected.
-            $adminError = ($uri === "/projects" && $method === "DELETE")
-                ? AdminGuard::check()
-                : null;
+            $guardError = null;
 
-            if ($adminError) {
-                $result = $adminError;
+            // Route- and method-specific guards, e.g. AdminGuard on
+            // DELETE /projects, TaskOwnershipGuard on PUT /tasks. Every guard
+            // is called the same way (check($input)) and returns null to
+            // allow the request through, or an error result to stop it.
+            foreach ($route["guards"][$method] ?? [] as $guardClass) {
+                $guardError = $guardClass::check($input);
+
+                if ($guardError) {
+                    break;
+                }
+            }
+
+            if ($guardError) {
+                $result = $guardError;
             } else {
-                $controllerClass = $routes[$uri];
+                $controllerClass = $route["controller"];
                 $controller = new $controllerClass();
                 $result = $controller->handleRequest($method, $input);
             }
         }
     } else {
-        $result = [
-            "status" => 404,
-            "body" => ["message" => "Route Not Found"]
-        ];
+        $result = Response::result(404, "Route Not Found");
     }
 
 } catch (Exception $e) {
@@ -140,10 +133,7 @@ try {
     // message, since exception text can contain DB/connection details.
     error_log($e->getMessage());
 
-    $result = [
-        "status" => 500,
-        "body" => ["message" => "Internal Server Error"]
-    ];
+    $result = Response::result(500, "Internal Server Error");
 }
 
 Response::json($result["body"], $result["status"]);

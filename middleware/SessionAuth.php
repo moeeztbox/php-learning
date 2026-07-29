@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../helpers/Response.php";
+
 // Reusable session-auth check, called once per protected route from index.php
 // instead of being duplicated inside every controller.
 class SessionAuth
@@ -9,10 +11,7 @@ class SessionAuth
     public static function check()
     {
         if (!isset($_SESSION["user_id"])) {
-            return [
-                "status" => 401,
-                "body" => ["message" => "Unauthorized"]
-            ];
+            return Response::result(401, "Unauthorized");
         }
 
         return null;
